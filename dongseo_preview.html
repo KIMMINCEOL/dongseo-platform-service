@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>동서대학교 스마트 캠퍼스 플랫폼</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dongseo: {
+              50: '#fdf2f4',
+              100: '#fbe6e9',
+              200: '#f7d0d6',
+              300: '#f0abb6',
+              400: '#e4788c',
+              500: '#d24a64',
+              600: '#b82946',
+              700: '#9e1b32', // Main Dongseo Burgundy Red
+              800: '#84192d',
+              900: '#6f1929',
+              950: '#3d0912',
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    body { font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- 상단 네비게이션 헤더 -->
+  <header class="bg-dongseo-700 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-dongseo-700 font-black text-xl shadow">
+          DSU
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight">동서대학교 스마트 캠퍼스</h1>
+          <p class="text-xs text-dongseo-200">학식 정보 · 한줄평 리뷰 · 공지사항 모아보기</p>
+        </div>
+      </div>
+
+      <!-- 탭 스위처 -->
+      <nav class="flex space-x-1 bg-dongseo-800/60 p-1 rounded-xl text-sm font-medium">
+        <button id="tab-btn-meals" onclick="switchTab('meals')" class="px-4 py-1.5 rounded-lg transition-all bg-white text-dongseo-700 shadow font-semibold">
+          <i class="fa-solid fa-utensils mr-1.5"></i>학식 & 리뷰
+        </button>
+        <button id="tab-btn-notices" onclick="switchTab('notices')" class="px-4 py-1.5 rounded-lg transition-all text-white hover:bg-white/10">
+          <i class="fa-solid fa-bullhorn mr-1.5"></i>공지사항 & 북마크
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 메인 컨텐츠 영역 -->
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full">
+
+    <!-- 1. 학식 및 리뷰 탭 -->
+    <section id="section-meals" class="space-y-6">
+      <!-- 식당 선택 및 오늘 일자 안내 -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-dongseo-50 text-dongseo-700 border border-dongseo-200">
+              오늘의 식단
+            </span>
+            <span id="current-date-text" class="text-slate-500 text-sm"></span>
+          </div>
+          <h2 class="text-xl font-bold mt-1 text-slate-900">학생식당 & 교직원식당 메뉴</h2>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <select id="restaurant-select" onchange="filterRestaurant(this.value)" class="bg-slate-100 border border-slate-300 text-slate-800 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-dongseo-700 outline-none">
+            <option value="학생식당">학생식당 (스튜던트 플라자)</option>
+            <option value="교직원식당">교직원식당</option>
+            <option value="기숙사식당">기숙사(누리관) 식당</option>
+          </select>
+          <button onclick="openReviewModal()" class="bg-dongseo-700 hover:bg-dongseo-800 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-pen-nib"></i>
+            <span>리뷰 작성</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 메뉴 카드 목록 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5" id="menu-cards-container">
+        <!-- JS 렌더링 -->
+      </div>
+
+      <!-- 실시간 한줄평 섹션 -->
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-2">
+            <h3 class="text-lg font-bold text-slate-900">학우들의 생생 한줄평</h3>
+            <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full" id="review-count-badge">3개</span>
+          </div>
+          <p class="text-xs text-dongseo-700 font-medium">
+            <i class="fa-solid fa-shield-halved mr-1"></i>동서대 웹메일(@dongseo.ac.kr) 인증 완료
+          </p>
+        </div>
+
+        <div id="reviews-list-container" class="space-y-3">
+          <!-- JS 렌더링 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 공지사항 탭 -->
+    <section id="section-notices" class="space-y-6 hidden">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">동서대학교 공식 공지사항</h2>
+          <p class="text-xs text-slate-500 mt-0.5">학교 홈페이지 실시간 스크래핑 및 관심 공지 북마크</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- 카테고리 필터 -->
+          <div class="inline-flex rounded-lg bg-slate-100 p-1 text-xs font-semibold">
+            <button onclick="filterNotices('all')" id="notice-filter-all" class="px-3 py-1.5 rounded-md bg-white text-dongseo-700 shadow-sm">전체</button>
+            <button onclick="filterNotices('학사')" id="notice-filter-학사" class="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900">학사</button>
+            <button onclick="filterNotices('장학')" id="notice-filter-장학" class="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900">장학/등록</button>
+            <button onclick="filterNotices('취업')" id="notice-filter-취업" class="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900">취업/진로</button>
+            <button onclick="filterNotices('bookmarks')" id="notice-filter-bookmarks" class="px-3 py-1.5 rounded-md text-amber-600 hover:text-amber-700 flex items-center gap-1">
+              <i class="fa-solid fa-star"></i>내 북마크
+            </button>
+          </div>
+
+          <!-- 검색창 -->
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input type="text" id="notice-search-input" oninput="searchNotices(this.value)" placeholder="공지 검색..." class="pl-8 pr-3 py-1.5 bg-slate-100 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-dongseo-700 w-48">
+          </div>
+        </div>
+      </div>
+
+      <!-- 공지사항 리스트 테이블 -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div id="notice-list-container" class="divide-y divide-slate-100">
+          <!-- JS 렌더링 -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 리뷰 작성 모달 -->
+  <div id="review-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
+      <button onclick="closeReviewModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="flex items-center space-x-2 text-dongseo-700 mb-1">
+        <i class="fa-solid fa-utensils"></i>
+        <span class="text-xs font-bold uppercase tracking-wider">Meal Review</span>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 mb-4">학식 한줄평 남기기</h3>
+
+      <form id="review-form" onsubmit="submitReview(event)" class="space-y-4">
+        <!-- 대상 메뉴 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">리뷰 대상 식당 / 메뉴</label>
+          <select id="form-menu-id" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-dongseo-700">
+            <option value="caf-1">[학생식당] 수제 치즈 돈까스 정식</option>
+            <option value="caf-2">[학생식당] 칼칼 돼지 김치찌개</option>
+            <option value="caf-3">[학생식당] 매콤 불고기 비빔밥</option>
+          </select>
+        </div>
+
+        <!-- 동서대 웹메일 인증 (코드 로직 반영) -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-xs font-semibold text-slate-700">동서대학교 웹메일</label>
+            <span class="text-[11px] text-dongseo-600 font-medium">자동 마스킹 저장</span>
+          </div>
+          <div class="relative">
+            <input type="email" id="form-email" required placeholder="example@dongseo.ac.kr" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-dongseo-700">
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">※ @dongseo.ac.kr 메일만 작성 가능하며, 'kim***@dongseo.ac.kr'로 암호화 표기됩니다.</p>
+        </div>
+
+        <!-- 별점 선택 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">별점</label>
+          <div class="flex items-center space-x-1" id="star-rating-box">
+            <button type="button" onclick="setRating(1)" class="star-btn text-2xl text-amber-400"><i class="fa-solid fa-star"></i></button>
+            <button type="button" onclick="setRating(2)" class="star-btn text-2xl text-amber-400"><i class="fa-solid fa-star"></i></button>
+            <button type="button" onclick="setRating(3)" class="star-btn text-2xl text-amber-400"><i class="fa-solid fa-star"></i></button>
+            <button type="button" onclick="setRating(4)" class="star-btn text-2xl text-amber-400"><i class="fa-solid fa-star"></i></button>
+            <button type="button" onclick="setRating(5)" class="star-btn text-2xl text-amber-400"><i class="fa-solid fa-star"></i></button>
+            <span id="rating-text" class="text-xs font-bold text-slate-600 ml-2">5점</span>
+          </div>
+        </div>
+
+        <!-- 한줄평 내용 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">한줄평 (최소 2자)</label>
+          <textarea id="form-comment" rows="3" required placeholder="맛, 양, 가성비 등에 대한 솔직한 후기를 남겨주세요." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-dongseo-700"></textarea>
+        </div>
+
+        <div class="pt-2 flex space-x-2">
+          <button type="button" onclick="closeReviewModal()" class="flex-1 py-2.5 border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-100 transition">취소</button>
+          <button type="submit" class="flex-1 py-2.5 bg-dongseo-700 hover:bg-dongseo-800 text-white text-sm font-semibold rounded-lg shadow-md transition">등록 완료</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 공지사항 상세 모달 -->
+  <div id="notice-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
+      <button onclick="closeNoticeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="border-b border-slate-100 pb-4 pr-8">
+        <span id="modal-notice-category" class="inline-block text-xs font-bold text-dongseo-700 bg-dongseo-50 px-2 py-0.5 rounded-full mb-1">학사</span>
+        <h3 id="modal-notice-title" class="text-lg font-bold text-slate-900 leading-snug">공지사항 제목</h3>
+        <div class="flex items-center space-x-4 text-xs text-slate-500 mt-2">
+          <span id="modal-notice-date"><i class="fa-regular fa-calendar mr-1"></i>2026-09-27</span>
+          <span id="modal-notice-author"><i class="fa-regular fa-user mr-1"></i>교무처</span>
+        </div>
+      </div>
+
+      <div id="modal-notice-content" class="py-5 overflow-y-auto text-sm text-slate-700 leading-relaxed flex-1 whitespace-pre-line">
+        <!-- 본문 내용 -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
+        <button id="modal-bookmark-btn" onclick="toggleModalBookmark()" class="text-sm font-medium px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5">
+          <i class="fa-regular fa-star"></i>북마크 저장
+        </button>
+        <button onclick="closeNoticeModal()" class="bg-slate-900 text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-slate-800">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
+    <p>동서대학교(Dongseo University) 학생 맞춤형 포털 서비스 프로토타입</p>
+    <p class="mt-1">버건디 테마(#9e1b32) · 웹메일 마스킹 인증 · 크롤러 및 북마크 시스템</p>
+  </footer>
+
+  <script>
+    // 1. 상태 및 Mock 데이터
+    const menus = [
+      { id: 'caf-1', restaurant: '학생식당', name: '수제 치즈 돈까스 정식', price: '5,500원', corner: '양식 코너', desc: '바삭한 돈까스에 고소한 모짜렐라 치즈와 미니 우동 포함', avgRating: 4.8, reviewCount: 2 },
+      { id: 'caf-2', restaurant: '학생식당', name: '칼칼 돼지 김치찌개', price: '4,800원', corner: '한식 코너', desc: '잘 익은 묵은지와 두툼한 국내산 돼지고기를 푹 끓인 뚝배기 찌개', avgRating: 4.0, reviewCount: 1 },
+      { id: 'caf-3', restaurant: '학생식당', name: '매콤 불고기 비빔밥', price: '5,000원', corner: '한식 코너', desc: '신선한 5색 나물과 특제 고추장 양념 불고기', avgRating: 4.5, reviewCount: 0 },
+      { id: 'staff-1', restaurant: '교직원식당', name: '영양 갈비탕 & 버섯전', price: '7,000원', corner: '일품정식', desc: '진한 소갈비 육수에 수삼과 당면, 바삭한 모듬 버섯전', avgRating: 5.0, reviewCount: 1 },
+    ];
+
+    let reviews = [
+      {
+        id: 'rev-1',
+        menuId: 'caf-1',
+        restaurant: '학생식당',
+        date: '2026-09-27',
+        studentEmailMasked: 'kim***@dongseo.ac.kr',
+        rating: 5,
+        comment: '돈까스 바삭하고 소스도 진해서 오늘 완전 최고였습니다! 가성비 짱',
+        createdAt: '12:30'
+      },
+      {
+        id: 'rev-2',
+        menuId: 'caf-1',
+        restaurant: '학생식당',
+        date: '2026-09-27',
+        studentEmailMasked: 'lee***@dongseo.ac.kr',
+        rating: 4,
+        comment: '미니 우동 국물이 조금 짰지만 돈까스는 매우 만족스러웠어요.',
+        createdAt: '12:45'
+      },
+      {
+        id: 'rev-3',
+        menuId: 'caf-2',
+        restaurant: '학생식당',
+        date: '2026-09-27',
+        studentEmailMasked: 'park***@dongseo.ac.kr',
+        rating: 4,
+        comment: '김치찌개 고기 듬뿍 들어있어서 든든하게 먹었습니다.',
+        createdAt: '13:10'
+      }
+    ];
+
+    const notices = [
+      {
+        id: 'dsu-101',
+        category: '학사',
+        title: '2026학년도 2학기 중간고사 시간표 및 유의사항 안내',
+        date: '2026-09-25',
+        author: '교무처',
+        content: `2026학년도 2학기 중간시험 기간 및 유의사항을 다음과 같이 안내합니다.
+
+1. 시험 기간: 2026. 10. 19(월) ~ 10. 23(금)
+2. 시험 장소: 강좌별 지정 강의실 (스마트 종합정보시스템 조회 가능)
+3. 유의사항:
+   - 학생증(모바일 학생증 포함) 또는 신분증 미지참 시 응시가 제한될 수 있습니다.
+   - 시험 도중 전자기기(스마트워치, 무선 이어폰 등) 소지는 부정행위로 간주됩니다.`
+      },
+      {
+        id: 'dsu-102',
+        category: '장학',
+        title: '2026년 2학기 동서 글로벌 리더십 장학금 신청 공고',
+        date: '2026-09-24',
+        author: '학생복지처',
+        content: `글로벌 인재 양성을 위한 2026학년도 동서 글로벌 리더십 장학금 수혜 대상자를 모집합니다.
+
+■ 지원 자격: 공인어학성적(TOEIC 800 이상 또는 OPIc IM2 이상) 소지 재학생
+■ 선발 인원: 총 50명 (1인당 1,500,000원 등록금 감면)
+■ 접수 마감: 2026. 10. 10(금) 17:00까지 온라인 접수`
+      },
+      {
+        id: 'dsu-103',
+        category: '취업',
+        title: '2026 부산 청년 IT/AI 테크 페어 참가 학생 모집 및 셔틀 지원',
+        date: '2026-09-22',
+        author: '취창업지원센터',
+        content: `벡스코에서 개최되는 2026 부산 청년 테크 페어 단체 참가를 지원합니다.
+동서대학교 학생들을 위한 전용 셔틀버스 운행 및 참가 확인서 발급(공결 인정).`
+      },
+      {
+        id: 'dsu-104',
+        category: '학사',
+        title: '2026 동계 계절학기 개설 희망 교과목 수요조사 안내',
+        date: '2026-09-20',
+        author: '학사관리팀',
+        content: `학생 여러분의 수강 편의 증진을 위해 동계 계절학기 수요조사를 실시하오니 포털에서 참여바랍니다.`
+      }
+    ];
+
+    const BOOKMARK_STORAGE_KEY = 'dsu_bookmarked_notices';
+    function getBookmarkedIds() {
+      try {
+        const raw = localStorage.getItem(BOOKMARK_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function toggleNoticeBookmark(id) {
+      const ids = getBookmarkedIds();
+      let updated;
+      let nowBookmarked = false;
+      if (ids.includes(id)) {
+        updated = ids.filter(item => item !== id);
+        nowBookmarked = false;
+      } else {
+        updated = [...ids, id];
+        nowBookmarked = true;
+      }
+      localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(updated));
+      return nowBookmarked;
+    }
+
+    function maskDongseoEmail(email) {
+      const parts = email.split('@');
+      if (parts.length !== 2) return '익명***@dongseo.ac.kr';
+      const username = parts[0];
+      const domain = parts[1];
+      if (username.length <= 2) {
+        return `${username}*@${domain}`;
+      }
+      return `${username.slice(0, 3)}***@${domain}`;
+    }
+
+    let currentRestaurant = '학생식당';
+    let currentRating = 5;
+    let activeNoticeFilter = 'all';
+    let activeModalNoticeId = null;
+
+    function renderMenus() {
+      const container = document.getElementById('menu-cards-container');
+      const filtered = menus.filter(m => m.restaurant === currentRestaurant);
+      container.innerHTML = filtered.map(m => `
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition">
+          <div class="bg-slate-100/70 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+            <span class="text-xs font-semibold text-dongseo-700 bg-dongseo-50 px-2 py-0.5 rounded border border-dongseo-200">${m.corner}</span>
+            <span class="text-sm font-bold text-slate-800">${m.price}</span>
+          </div>
+          <div class="p-4">
+            <h4 class="font-bold text-slate-900 text-base mb-1">${m.name}</h4>
+            <p class="text-xs text-slate-500 mb-4 line-clamp-2">${m.desc}</p>
+            <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+              <span class="text-amber-500 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-star"></i> ${m.avgRating.toFixed(1)}
+              </span>
+              <button onclick="openReviewModalFor('${m.id}')" class="text-dongseo-700 hover:text-dongseo-800 font-semibold hover:underline">
+                한줄평 남기기 →
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderReviews() {
+      const container = document.getElementById('reviews-list-container');
+      const filtered = reviews.filter(r => r.restaurant === currentRestaurant);
+      document.getElementById('review-count-badge').textContent = `${filtered.length}개`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm">아직 등록된 한줄평이 없습니다. 첫 후기를 남겨보세요!</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(r => `
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div class="space-y-1">
+            <div class="flex items-center space-x-2">
+              <span class="text-amber-400 text-xs">${'<i class="fa-solid fa-star"></i>'.repeat(r.rating)}</span>
+              <span class="text-xs font-semibold text-slate-700">${r.studentEmailMasked}</span>
+              <span class="text-[11px] text-slate-400">· ${r.createdAt || '방금 전'}</span>
+            </div>
+            <p class="text-sm text-slate-800 font-medium">${r.comment}</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 bg-white border border-slate-200 rounded-md text-slate-500 font-medium">
+            ${r.restaurant}
+          </span>
+        </div>
+      `).join('');
+    }
+
+    function renderNotices() {
+      const container = document.getElementById('notice-list-container');
+      const bookmarkedIds = getBookmarkedIds();
+      const searchQuery = document.getElementById('notice-search-input').value.toLowerCase().trim();
+
+      let list = [...notices];
+
+      if (activeNoticeFilter === 'bookmarks') {
+        list = list.filter(n => bookmarkedIds.includes(n.id));
+      } else if (activeNoticeFilter !== 'all') {
+        list = list.filter(n => n.category === activeNoticeFilter);
+      }
+
+      if (searchQuery) {
+        list = list.filter(n => n.title.toLowerCase().includes(searchQuery) || n.content.toLowerCase().includes(searchQuery));
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-slate-400 text-sm">표시할 공지사항이 없습니다.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(n => {
+        const isBookmarked = bookmarkedIds.includes(n.id);
+        return `
+          <div class="p-4 hover:bg-slate-50/80 transition flex items-center justify-between gap-4 cursor-pointer" onclick="openNoticeModal('${n.id}')">
+            <div class="flex items-start space-x-3 flex-1 min-w-0">
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full mt-0.5 flex-shrink-0 ${n.category === '장학' ? 'bg-amber-100 text-amber-800' : (n.category === '취업' ? 'bg-emerald-100 text-emerald-800' : 'bg-dongseo-50 text-dongseo-700')}">
+                ${n.category}
+              </span>
+              <div class="min-w-0">
+                <h4 class="text-sm font-semibold text-slate-900 truncate">${n.title}</h4>
+                <div class="flex items-center space-x-3 text-xs text-slate-400 mt-1">
+                  <span>${n.author}</span>
+                  <span>·</span>
+                  <span>${n.date}</span>
+                </div>
+              </div>
+            </div>
+            <button onclick="event.stopPropagation(); toggleBookmarkFromList('${n.id}')" class="p-2 text-slate-300 hover:text-amber-500 transition ${isBookmarked ? '!text-amber-500' : ''}" title="북마크 토글">
+              <i class="${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-star text-base"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function switchTab(tab) {
+      const mealsBtn = document.getElementById('tab-btn-meals');
+      const noticesBtn = document.getElementById('tab-btn-notices');
+      const mealsSec = document.getElementById('section-meals');
+      const noticesSec = document.getElementById('section-notices');
+
+      if (tab === 'meals') {
+        mealsBtn.className = "px-4 py-1.5 rounded-lg transition-all bg-white text-dongseo-700 shadow font-semibold";
+        noticesBtn.className = "px-4 py-1.5 rounded-lg transition-all text-white hover:bg-white/10";
+        mealsSec.classList.remove('hidden');
+        noticesSec.classList.add('hidden');
+      } else {
+        noticesBtn.className = "px-4 py-1.5 rounded-lg transition-all bg-white text-dongseo-700 shadow font-semibold";
+        mealsBtn.className = "px-4 py-1.5 rounded-lg transition-all text-white hover:bg-white/10";
+        noticesSec.classList.remove('hidden');
+        mealsSec.classList.add('hidden');
+        renderNotices();
+      }
+    }
+
+    function filterRestaurant(val) {
+      currentRestaurant = val;
+      renderMenus();
+      renderReviews();
+    }
+
+    function filterNotices(cat) {
+      activeNoticeFilter = cat;
+      ['all', '학사', '장학', '취업', 'bookmarks'].forEach(c => {
+        const btn = document.getElementById(`notice-filter-${c}`);
+        if (c === cat) {
+          btn.className = "px-3 py-1.5 rounded-md bg-white text-dongseo-700 shadow-sm";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900";
+        }
+      });
+      renderNotices();
+    }
+
+    function searchNotices() {
+      renderNotices();
+    }
+
+    function toggleBookmarkFromList(id) {
+      toggleNoticeBookmark(id);
+      renderNotices();
+    }
+
+    function openReviewModal() {
+      document.getElementById('review-modal').classList.remove('hidden');
+    }
+    function openReviewModalFor(menuId) {
+      document.getElementById('form-menu-id').value = menuId;
+      openReviewModal();
+    }
+    function closeReviewModal() {
+      document.getElementById('review-modal').classList.add('hidden');
+    }
+
+    function setRating(val) {
+      currentRating = val;
+      const btns = document.querySelectorAll('.star-btn');
+      btns.forEach((btn, idx) => {
+        if (idx < val) {
+          btn.classList.add('text-amber-400');
+          btn.classList.remove('text-slate-200');
+        } else {
+          btn.classList.remove('text-amber-400');
+          btn.classList.add('text-slate-200');
+        }
+      });
+      document.getElementById('rating-text').textContent = `${val}점`;
+    }
+
+    function submitReview(e) {
+      e.preventDefault();
+      const email = document.getElementById('form-email').value.trim();
+      const comment = document.getElementById('form-comment').value.trim();
+      const menuId = document.getElementById('form-menu-id').value;
+
+      if (!email.toLowerCase().endsWith('@dongseo.ac.kr')) {
+        alert('동서대학교 웹메일(@dongseo.ac.kr) 계정으로 인증된 학우만 한줄평을 작성할 수 있습니다.');
+        return;
+      }
+
+      if (comment.length < 2) {
+        alert('최소 2자 이상의 한줄평을 입력해 주세요.');
+        return;
+      }
+
+      const masked = maskDongseoEmail(email);
+      const newReview = {
+        id: 'rev-' + Date.now(),
+        menuId: menuId,
+        restaurant: currentRestaurant,
+        date: new Date().toISOString().slice(0, 10),
+        studentEmailMasked: masked,
+        rating: currentRating,
+        comment: comment,
+        createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      reviews.unshift(newReview);
+      renderReviews();
+      closeReviewModal();
+      document.getElementById('form-comment').value = '';
+      alert('성공적으로 한줄평이 등록되었습니다! (' + masked + ' 으로 안전하게 등록됨)');
+    }
+
+    function openNoticeModal(id) {
+      activeModalNoticeId = id;
+      const notice = notices.find(n => n.id === id);
+      if (!notice) return;
+
+      document.getElementById('modal-notice-category').textContent = notice.category;
+      document.getElementById('modal-notice-title').textContent = notice.title;
+      document.getElementById('modal-notice-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>${notice.date}`;
+      document.getElementById('modal-notice-author').innerHTML = `<i class="fa-regular fa-user mr-1"></i>${notice.author}`;
+      document.getElementById('modal-notice-content').textContent = notice.content;
+
+      updateModalBookmarkButton();
+      document.getElementById('notice-modal').classList.remove('hidden');
+    }
+
+    function closeNoticeModal() {
+      document.getElementById('notice-modal').classList.add('hidden');
+    }
+
+    function updateModalBookmarkButton() {
+      const isBookmarked = getBookmarkedIds().includes(activeModalNoticeId);
+      const btn = document.getElementById('modal-bookmark-btn');
+      if (isBookmarked) {
+        btn.innerHTML = `<i class="fa-solid fa-star text-amber-500"></i><span class="text-amber-700 font-semibold">북마크 보관됨</span>`;
+        btn.className = "text-sm px-4 py-2 rounded-lg border border-amber-300 bg-amber-50 flex items-center gap-1.5";
+      } else {
+        btn.innerHTML = `<i class="fa-regular fa-star"></i>북마크 저장`;
+        btn.className = "text-sm font-medium px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5";
+      }
+    }
+
+    function toggleModalBookmark() {
+      if (!activeModalNoticeId) return;
+      toggleNoticeBookmark(activeModalNoticeId);
+      updateModalBookmarkButton();
+      renderNotices();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date();
+      const dateStr = today.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+      document.getElementById('current-date-text').textContent = dateStr;
+
+      renderMenus();
+      renderReviews();
+      renderNotices();
+    });
+  </script>
+</body>
+</html>
